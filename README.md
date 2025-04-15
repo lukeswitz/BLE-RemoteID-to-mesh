@@ -1,5 +1,8 @@
 # WiFi & BT 4/5 Drone Remote ID 📡
 *Meshtastic alerts with Mesh-Mapper API*
+
+> [!NOTE]
+> Upload to Xiao esp32s3 with [meshFlasher](https://github.com/lukeswitz/mesh-detect/tree/main), or mod & compile platform.io `.ini` to suite.
  
 This project is a dual-core scanner for WiFi and BT-based Drone Remote ID based on modified firmware supporting **OpenDroneID**. It runs on an **ESP32‑S3** (tested with the **Xiao ESP32‑S3** board) and sends parsed messages over a custom UART to a serial mesh network.
 
