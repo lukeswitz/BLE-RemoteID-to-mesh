@@ -24,7 +24,7 @@ detection_history = []  # For CSV logging and KML generation
 # Changed: Instead of one selected port, we allow up to three.
 SELECTED_PORTS = {}  # key will be 'port1', 'port2', 'port3'
 BAUD_RATE = 115200
-staleThreshold = 300  # Global stale threshold in seconds (default 5 minutes)
+staleThreshold = 60  # Global stale threshold in seconds (changed from 300 seconds -> 1 minute)
 # For each port, we track its connection status.
 serial_connected_status = {}  # e.g. {"port1": True, "port2": False, ...}
 
@@ -491,7 +491,7 @@ persistedZoom = persistedZoom ? parseInt(persistedZoom) : null;
 
 var aliases = {};
 var colorOverrides = window.colorOverrides;
-const STALE_THRESHOLD = 300;
+const STALE_THRESHOLD = 60;  // Changed from 300 to 60 seconds for stale threshold in client side code
 var comboListItems = {};
 
 async function updateAliases() {
@@ -920,7 +920,7 @@ function updateComboList(data) {
   
   persistentMACs.forEach(mac => {
     let detection = data[mac];
-    let isActive = detection && ((currentTime - detection.last_update) <= 300);
+    let isActive = detection && ((currentTime - detection.last_update) <= 60);  // changed from 300 to 60 seconds
     let item = comboListItems[mac];
     if (!item) {
       item = document.createElement("div");
@@ -970,14 +970,14 @@ async function updateData() {
     for (const mac in data) { if (!persistentMACs.includes(mac)) { persistentMACs.push(mac); } }
     for (const mac in data) {
       if (historicalDrones[mac]) {
-        if (data[mac].last_update > historicalDrones[mac].lockTime || (currentTime - historicalDrones[mac].lockTime) > 300) {
+        if (data[mac].last_update > historicalDrones[mac].lockTime || (currentTime - historicalDrones[mac].lockTime) > 60) {  // changed from 300 to 60
           delete historicalDrones[mac];
           localStorage.setItem('historicalDrones', JSON.stringify(historicalDrones));
           if (droneBroadcastRings[mac]) { map.removeLayer(droneBroadcastRings[mac]); delete droneBroadcastRings[mac]; }
         } else { continue; }
       }
       const det = data[mac];
-      if (!det.last_update || (currentTime - det.last_update > 300)) {
+      if (!det.last_update || (currentTime - det.last_update > 60)) {  // changed from 300 to 60 seconds
         if (droneMarkers[mac]) { map.removeLayer(droneMarkers[mac]); delete droneMarkers[mac]; }
         if (pilotMarkers[mac]) { map.removeLayer(pilotMarkers[mac]); delete pilotMarkers[mac]; }
         if (droneCircles[mac]) { map.removeLayer(droneCircles[mac]); delete droneCircles[mac]; }
