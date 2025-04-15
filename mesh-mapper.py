@@ -373,11 +373,12 @@ HTML_PAGE = '''
     }
     #filterHeader { display: flex; justify-content: space-between; align-items: center; }
     
-    /* USB status box styling (bottom right) reduced by 30% */
+    /* USB status box styling (bottom right) reduced by 30%
+       Now set flush to the corner with bottom: 0 and right: 0 */
     #serialStatus {
       position: absolute;
-      bottom: 30px;
-      right: 10px;
+      bottom: 0;
+      right: 0;
       background: rgba(0,0,0,0.8);
       padding: 3.5px; /* reduced from 5px */
       border: 0.7px solid lime; /* reduced border thickness */
