@@ -1,7 +1,7 @@
-# BLE Drone Remote ID to Meshtastic with Mesh-Mapper API 📡
-
-Minimal **BLE-based** Drone Remote ID Scanner  
-This project is a minimal scanner for BLE-based Drone Remote ID based on modified firmware supporting **OpenDroneID**. It runs on an **ESP32‑C6** (tested with the **Xiao ESP32‑C6** board) and sends parsed messages over a custom UART to a serial mesh network.
+# WiFi & BT 4/5 Drone Remote ID 📡
+*Meshtastic alerts with Mesh-Mapper API*
+ 
+This project is a dual-core scanner for WiFi and BT-based Drone Remote ID based on modified firmware supporting **OpenDroneID**. It runs on an **ESP32‑S3** (tested with the **Xiao ESP32‑S3** board) and sends parsed messages over a custom UART to a serial mesh network.
 
 <img src="eye.png" alt="eye" style="width:50%; height:25%;">
 
@@ -29,7 +29,7 @@ This project is a minimal scanner for BLE-based Drone Remote ID based on modifie
      - Configures USB Serial (115200 baud) for JSON output and Serial1 for mesh messaging.
      - Initializes the BLE stack and starts scanning for BLE advertisements.
    - **Data Capture & Parsing:**  
-     - Listens for BLE advertisements and decodes Drone Remote ID packets using registered callbacks.
+     - Listens for BT and WiFi advertisements and decodes Drone Remote ID packets using registered callbacks.
      - Formats the data into a minimal JSON payload including:
        - `mac`: The device MAC address.
        - `rssi`: Signal strength.
