@@ -24,7 +24,7 @@ detection_history = []  # For CSV logging and KML generation
 # Changed: Instead of one selected port, we allow up to three.
 SELECTED_PORTS = {}  # key will be 'port1', 'port2', 'port3'
 BAUD_RATE = 115200
-staleThreshold = 300  # Global stale threshold in seconds (default 5 minutes)
+staleThreshold = 60  # Global stale threshold in seconds (changed from 300 seconds -> 1 minute)
 # For each port, we track its connection status.
 serial_connected_status = {}  # e.g. {"port1": True, "port2": False, ...}
 
@@ -143,15 +143,47 @@ def generate_kml():
 # ----------------------
 def update_detection(detection):
     mac = detection.get("mac")
-    remote_id = detection.get("basic_id")
     if not mac:
         return
-    detection["drone_lat"] = detection.get("drone_lat", 0)
-    detection["drone_long"] = detection.get("drone_long", 0)
+
+    # Retrieve new drone coordinates from the detection
+    new_drone_lat = detection.get("drone_lat", 0)
+    new_drone_long = detection.get("drone_long", 0)
+    valid_drone = (new_drone_lat != 0 and new_drone_long != 0)
+
+    # If the new detection has invalid (0) drone coordinates...
+    if not valid_drone:
+        # If there is an existing record with valid coordinates, update only non-coordinate fields.
+        if mac in tracked_pairs:
+            existing = tracked_pairs[mac]
+            if existing.get("drone_lat", 0) != 0 and existing.get("drone_long", 0) != 0:
+                # Update fields other than drone coordinates
+                for field in ['rssi', 'basic_id', 'drone_altitude']:
+                    if field in detection:
+                        existing[field] = detection[field]
+                # Update pilot coordinates only if they are valid (non zero)
+                new_pilot_lat = detection.get("pilot_lat", 0)
+                new_pilot_long = detection.get("pilot_long", 0)
+                if new_pilot_lat != 0:
+                    existing["pilot_lat"] = new_pilot_lat
+                if new_pilot_long != 0:
+                    existing["pilot_long"] = new_pilot_long
+                existing["last_update"] = time.time()
+                print(f"Ignored update for {mac} due to invalid drone coordinates, preserving previous valid coordinates.")
+                return
+        # No previous valid record exists: ignore the detection entirely.
+        print(f"Ignored detection for {mac} because drone coordinates are zero.")
+        return
+
+    # Otherwise, use the provided non-zero coordinates.
+    detection["drone_lat"] = new_drone_lat
+    detection["drone_long"] = new_drone_long
     detection["drone_altitude"] = detection.get("drone_altitude", 0)
     detection["pilot_lat"] = detection.get("pilot_lat", 0)
     detection["pilot_long"] = detection.get("pilot_long", 0)
     detection["last_update"] = time.time()
+
+    remote_id = detection.get("basic_id")
     if mac and remote_id:
         cached = FAA_CACHE.get((mac, remote_id))
         if cached:
@@ -341,19 +373,22 @@ HTML_PAGE = '''
   <style>
     body, html { margin: 0; padding: 0; background-color: black; }
     #map { height: 100vh; }
+    /* Layer control styling (bottom left) reduced by 30% */
     #layerControl {
       position: absolute;
       bottom: 10px;
       left: 10px;
       background: rgba(0,0,0,0.8);
-      padding: 5px;
-      border: 1px solid lime;
-      border-radius: 10px;
+      padding: 3.5px; /* reduced from 5px */
+      border: 0.7px solid lime; /* reduced border thickness */
+      border-radius: 7px; /* reduced from 10px */
       color: lime;
       font-family: monospace;
+      font-size: 0.7em; /* scale font by 70% */
       z-index: 1000;
     }
-    #layerControl select { background-color: #333; color: lime; border: none; padding: 3px; }
+    #layerControl select { background-color: #333; color: lime; border: none; padding: 2.1px; } /* reduced padding */
+    
     #filterBox {
       position: absolute;
       top: 10px;
@@ -369,20 +404,25 @@ HTML_PAGE = '''
       z-index: 1000;
     }
     #filterHeader { display: flex; justify-content: space-between; align-items: center; }
-    /* Updated serial status: stack multiple USB statuses vertically */
+    
+    /* USB status box styling (bottom right) reduced by 30% */
     #serialStatus {
       position: absolute;
       bottom: 30px;
       right: 10px;
       background: rgba(0,0,0,0.8);
-      padding: 5px;
-      border: 1px solid lime;
-      border-radius: 10px;
+      padding: 3.5px; /* reduced from 5px */
+      border: 0.7px solid lime; /* reduced border thickness */
+      border-radius: 7px; /* reduced from 10px */
       color: lime;
       font-family: monospace;
+      font-size: 0.7em; /* scale font by 70% */
       z-index: 1000;
     }
     #serialStatus div { margin-bottom: 5px; }
+    /* Remove extra bottom padding from the last USB item */
+    #serialStatus div:last-child { margin-bottom: 0; }
+    
     .usb-name { color: #FF00FF; } /* Neon pink for device names */
     .drone-item {
       display: inline-block;
@@ -491,7 +531,7 @@ persistedZoom = persistedZoom ? parseInt(persistedZoom) : null;
 
 var aliases = {};
 var colorOverrides = window.colorOverrides;
-const STALE_THRESHOLD = 300;
+const STALE_THRESHOLD = 60;  // changed from 300 to 60 seconds for stale threshold in client side code
 var comboListItems = {};
 
 async function updateAliases() {
@@ -920,7 +960,7 @@ function updateComboList(data) {
   
   persistentMACs.forEach(mac => {
     let detection = data[mac];
-    let isActive = detection && ((currentTime - detection.last_update) <= 300);
+    let isActive = detection && ((currentTime - detection.last_update) <= 60);  // changed from 300 to 60 seconds
     let item = comboListItems[mac];
     if (!item) {
       item = document.createElement("div");
@@ -970,14 +1010,14 @@ async function updateData() {
     for (const mac in data) { if (!persistentMACs.includes(mac)) { persistentMACs.push(mac); } }
     for (const mac in data) {
       if (historicalDrones[mac]) {
-        if (data[mac].last_update > historicalDrones[mac].lockTime || (currentTime - historicalDrones[mac].lockTime) > 300) {
+        if (data[mac].last_update > historicalDrones[mac].lockTime || (currentTime - historicalDrones[mac].lockTime) > 60) {  // changed from 300 to 60
           delete historicalDrones[mac];
           localStorage.setItem('historicalDrones', JSON.stringify(historicalDrones));
           if (droneBroadcastRings[mac]) { map.removeLayer(droneBroadcastRings[mac]); delete droneBroadcastRings[mac]; }
         } else { continue; }
       }
       const det = data[mac];
-      if (!det.last_update || (currentTime - det.last_update > 300)) {
+      if (!det.last_update || (currentTime - det.last_update > 60)) {  // changed from 300 to 60 seconds
         if (droneMarkers[mac]) { map.removeLayer(droneMarkers[mac]); delete droneMarkers[mac]; }
         if (pilotMarkers[mac]) { map.removeLayer(pilotMarkers[mac]); delete pilotMarkers[mac]; }
         if (droneCircles[mac]) { map.removeLayer(droneCircles[mac]); delete droneCircles[mac]; }
