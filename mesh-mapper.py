@@ -341,19 +341,22 @@ HTML_PAGE = '''
   <style>
     body, html { margin: 0; padding: 0; background-color: black; }
     #map { height: 100vh; }
+    /* Layer control styling (bottom left) reduced by 30% */
     #layerControl {
       position: absolute;
       bottom: 10px;
       left: 10px;
       background: rgba(0,0,0,0.8);
-      padding: 5px;
-      border: 1px solid lime;
-      border-radius: 10px;
+      padding: 3.5px; /* reduced from 5px */
+      border: 0.7px solid lime; /* reduced border thickness */
+      border-radius: 7px; /* reduced from 10px */
       color: lime;
       font-family: monospace;
+      font-size: 0.7em; /* scale font by 70% */
       z-index: 1000;
     }
-    #layerControl select { background-color: #333; color: lime; border: none; padding: 3px; }
+    #layerControl select { background-color: #333; color: lime; border: none; padding: 2.1px; } /* reduced padding */
+    
     #filterBox {
       position: absolute;
       top: 10px;
@@ -369,20 +372,25 @@ HTML_PAGE = '''
       z-index: 1000;
     }
     #filterHeader { display: flex; justify-content: space-between; align-items: center; }
-    /* Updated serial status: stack multiple USB statuses vertically */
+    
+    /* USB status box styling (bottom right) reduced by 30% */
     #serialStatus {
       position: absolute;
       bottom: 30px;
       right: 10px;
       background: rgba(0,0,0,0.8);
-      padding: 5px;
-      border: 1px solid lime;
-      border-radius: 10px;
+      padding: 3.5px; /* reduced from 5px */
+      border: 0.7px solid lime; /* reduced border thickness */
+      border-radius: 7px; /* reduced from 10px */
       color: lime;
       font-family: monospace;
+      font-size: 0.7em; /* scale font by 70% */
       z-index: 1000;
     }
     #serialStatus div { margin-bottom: 5px; }
+    /* Remove extra bottom padding from the last USB item */
+    #serialStatus div:last-child { margin-bottom: 0; }
+    
     .usb-name { color: #FF00FF; } /* Neon pink for device names */
     .drone-item {
       display: inline-block;
@@ -491,7 +499,7 @@ persistedZoom = persistedZoom ? parseInt(persistedZoom) : null;
 
 var aliases = {};
 var colorOverrides = window.colorOverrides;
-const STALE_THRESHOLD = 60;  // Changed from 300 to 60 seconds for stale threshold in client side code
+const STALE_THRESHOLD = 60;  // changed from 300 to 60 seconds for stale threshold in client side code
 var comboListItems = {};
 
 async function updateAliases() {
