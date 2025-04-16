@@ -160,6 +160,12 @@ The ESP32 firmware is the heart of the BLE scanning operation:
 
 ---
 
+## Disclaimer
+
+> [!IMPORTANT]
+> The material in this repository, including all associated links and content, is provided solely for informational and educational purposes. The authors do not endorse or condone any illegal activity. Use this information responsibly and at your own risk.
+
+
 ## Acknowledgments
 
 Thanks to Cemaxacutor, Luke Switzer, and other contributors for their underlying code and support.
