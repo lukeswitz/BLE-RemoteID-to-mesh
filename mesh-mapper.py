@@ -405,10 +405,10 @@ HTML_PAGE = '''
     }
     #filterHeader { display: flex; justify-content: space-between; align-items: center; }
     
-    /* USB status box styling (bottom right) reduced by 30% */
+    /* USB status box styling (bottom right) - now even with the map layer select */
     #serialStatus {
       position: absolute;
-      bottom: 30px;
+      bottom: 10px;
       right: 10px;
       background: rgba(0,0,0,0.8);
       padding: 3.5px; /* reduced from 5px */
