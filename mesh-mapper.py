@@ -552,18 +552,19 @@ var followLock = { type: null, id: null, enabled: false };
 
 function generateObserverPopup() {
   var observerLocked = (followLock.enabled && followLock.type === 'observer');
+  var storedObserverEmoji = localStorage.getItem('observerEmoji') || "😎";
   return `
   <div>
     <strong>Observer Location</strong><br>
     <label for="observerEmoji">Select Observer Icon:</label>
     <select id="observerEmoji" onchange="updateObserverEmoji()">
-       <option value="😎">😎</option>
-       <option value="👽">👽</option>
-       <option value="🤖">🤖</option>
-       <option value="🏎️">🏎️</option>
-       <option value="🕵️‍♂️">🕵️‍♂️</option>
-       <option value="🥷">🥷</option>
-       <option value="👁️">👁️</option>
+       <option value="😎" ${storedObserverEmoji === "😎" ? "selected" : ""}>😎</option>
+       <option value="👽" ${storedObserverEmoji === "👽" ? "selected" : ""}>👽</option>
+       <option value="🤖" ${storedObserverEmoji === "🤖" ? "selected" : ""}>🤖</option>
+       <option value="🏎️" ${storedObserverEmoji === "🏎️" ? "selected" : ""}>🏎️</option>
+       <option value="🕵️‍♂️" ${storedObserverEmoji === "🕵️‍♂️" ? "selected" : ""}>🕵️‍♂️</option>
+       <option value="🥷" ${storedObserverEmoji === "🥷" ? "selected" : ""}>🥷</option>
+       <option value="👁️" ${storedObserverEmoji === "👁️" ? "selected" : ""}>👁️</option>
     </select><br>
     <button id="lock-observer" onclick="lockObserver()" style="background-color: ${observerLocked ? 'green' : ''};">
       ${observerLocked ? 'Locked on Observer' : 'Lock on Observer'}
@@ -575,9 +576,14 @@ function generateObserverPopup() {
   `;
 }
 
+// Updated function: now saves the selected observer icon to localStorage and updates the observer marker.
 function updateObserverEmoji() {
   var select = document.getElementById("observerEmoji");
-  if(observerMarker) { observerMarker.setIcon(createIcon('😎', 'blue')); }
+  var selectedEmoji = select.value;
+  localStorage.setItem('observerEmoji', selectedEmoji);
+  if (observerMarker) {
+    observerMarker.setIcon(createIcon(selectedEmoji, 'blue'));
+  }
 }
 
 function lockObserver() { followLock = { type: 'observer', id: 'observer', enabled: true }; updateObserverPopupButtons(); }
@@ -889,7 +895,9 @@ if (navigator.geolocation) {
   navigator.geolocation.watchPosition(function(position) {
     const lat = position.coords.latitude;
     const lng = position.coords.longitude;
-    const observerIcon = createIcon('😎', 'blue');
+    // Use stored observer emoji or default to "😎"
+    const storedObserverEmoji = localStorage.getItem('observerEmoji') || "😎";
+    const observerIcon = createIcon(storedObserverEmoji, 'blue');
     if (!observerMarker) {
       observerMarker = L.marker([lat, lng], {icon: observerIcon})
                         .bindPopup(generateObserverPopup())
