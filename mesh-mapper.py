@@ -770,6 +770,7 @@ function openAliasPopup(mac) {
     .openOn(map);
 }
 
+// Updated saveAlias: now it updates the open popup without closing it.
 async function saveAlias(mac) {
   let alias = document.getElementById("aliasInput").value;
   try {
@@ -779,7 +780,12 @@ async function saveAlias(mac) {
       updateAliases();
       let detection = window.tracked_pairs[mac] || {mac: mac};
       let content = generatePopupContent(detection, 'alias');
-      L.popup().setContent(content).openOn(map);
+      let currentPopup = map.getPopup();
+      if (currentPopup) {
+         currentPopup.setContent(content);
+      } else {
+         L.popup().setContent(content).openOn(map);
+      }
     }
   } catch (error) { console.error("Error saving alias:", error); }
 }
