@@ -405,10 +405,10 @@ HTML_PAGE = '''
     }
     #filterHeader { display: flex; justify-content: space-between; align-items: center; }
     
-    /* USB status box styling (bottom right) reduced by 30% */
+    /* USB status box styling (bottom right) - now even with the map layer select */
     #serialStatus {
       position: absolute;
-      bottom: 30px;
+      bottom: 10px;
       right: 10px;
       background: rgba(0,0,0,0.8);
       padding: 3.5px; /* reduced from 5px */
@@ -552,18 +552,19 @@ var followLock = { type: null, id: null, enabled: false };
 
 function generateObserverPopup() {
   var observerLocked = (followLock.enabled && followLock.type === 'observer');
+  var storedObserverEmoji = localStorage.getItem('observerEmoji') || "😎";
   return `
   <div>
     <strong>Observer Location</strong><br>
     <label for="observerEmoji">Select Observer Icon:</label>
     <select id="observerEmoji" onchange="updateObserverEmoji()">
-       <option value="😎">😎</option>
-       <option value="👽">👽</option>
-       <option value="🤖">🤖</option>
-       <option value="🏎️">🏎️</option>
-       <option value="🕵️‍♂️">🕵️‍♂️</option>
-       <option value="🥷">🥷</option>
-       <option value="👁️">👁️</option>
+       <option value="😎" ${storedObserverEmoji === "😎" ? "selected" : ""}>😎</option>
+       <option value="👽" ${storedObserverEmoji === "👽" ? "selected" : ""}>👽</option>
+       <option value="🤖" ${storedObserverEmoji === "🤖" ? "selected" : ""}>🤖</option>
+       <option value="🏎️" ${storedObserverEmoji === "🏎️" ? "selected" : ""}>🏎️</option>
+       <option value="🕵️‍♂️" ${storedObserverEmoji === "🕵️‍♂️" ? "selected" : ""}>🕵️‍♂️</option>
+       <option value="🥷" ${storedObserverEmoji === "🥷" ? "selected" : ""}>🥷</option>
+       <option value="👁️" ${storedObserverEmoji === "👁️" ? "selected" : ""}>👁️</option>
     </select><br>
     <button id="lock-observer" onclick="lockObserver()" style="background-color: ${observerLocked ? 'green' : ''};">
       ${observerLocked ? 'Locked on Observer' : 'Lock on Observer'}
@@ -575,9 +576,14 @@ function generateObserverPopup() {
   `;
 }
 
+// Updated function: now saves the selected observer icon to localStorage and updates the observer marker.
 function updateObserverEmoji() {
   var select = document.getElementById("observerEmoji");
-  if(observerMarker) { observerMarker.setIcon(createIcon('😎', 'blue')); }
+  var selectedEmoji = select.value;
+  localStorage.setItem('observerEmoji', selectedEmoji);
+  if (observerMarker) {
+    observerMarker.setIcon(createIcon(selectedEmoji, 'blue'));
+  }
 }
 
 function lockObserver() { followLock = { type: 'observer', id: 'observer', enabled: true }; updateObserverPopupButtons(); }
@@ -770,6 +776,7 @@ function openAliasPopup(mac) {
     .openOn(map);
 }
 
+// Updated saveAlias: now it updates the open popup without closing it.
 async function saveAlias(mac) {
   let alias = document.getElementById("aliasInput").value;
   try {
@@ -779,7 +786,12 @@ async function saveAlias(mac) {
       updateAliases();
       let detection = window.tracked_pairs[mac] || {mac: mac};
       let content = generatePopupContent(detection, 'alias');
-      L.popup().setContent(content).openOn(map);
+      let currentPopup = map.getPopup();
+      if (currentPopup) {
+         currentPopup.setContent(content);
+      } else {
+         L.popup().setContent(content).openOn(map);
+      }
     }
   } catch (error) { console.error("Error saving alias:", error); }
 }
@@ -883,7 +895,9 @@ if (navigator.geolocation) {
   navigator.geolocation.watchPosition(function(position) {
     const lat = position.coords.latitude;
     const lng = position.coords.longitude;
-    const observerIcon = createIcon('😎', 'blue');
+    // Use stored observer emoji or default to "😎"
+    const storedObserverEmoji = localStorage.getItem('observerEmoji') || "😎";
+    const observerIcon = createIcon(storedObserverEmoji, 'blue');
     if (!observerMarker) {
       observerMarker = L.marker([lat, lng], {icon: observerIcon})
                         .bindPopup(generateObserverPopup())
