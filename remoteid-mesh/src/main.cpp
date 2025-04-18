@@ -15,8 +15,8 @@
 #include "odid_wifi.h"
 #include <esp_timer.h>
 
-const int SERIAL1_RX_PIN = 7;
-const int SERIAL1_TX_PIN = 6;
+const int SERIAL1_RX_PIN = 4;
+const int SERIAL1_TX_PIN = 5;
 
 struct id_data {
   uint8_t  mac[6];
@@ -142,8 +142,8 @@ void print_compact_message(const id_data *UAV) {
                       "Drone: %s RSSI:%d", mac_str, UAV->rssi);
   if (msg_len < MAX_MESH_SIZE && UAV->lat_d != 0.0 && UAV->long_d != 0.0) {
     msg_len += snprintf(mesh_msg + msg_len, sizeof(mesh_msg) - msg_len,
-                        " https://maps.google.com/?q=%.6f,%.6f",
-                        UAV->lat_d, UAV->long_d);
+                        " http://maps.apple.com/?ll=%.6f,%.6f&q=%s",
+                        UAV->lat_d, UAV->long_d, UAV->uav_id);
   }
   if (Serial1.availableForWrite() >= msg_len) {
     Serial1.println(mesh_msg);
@@ -153,7 +153,7 @@ void print_compact_message(const id_data *UAV) {
   if (UAV->base_lat_d != 0.0 && UAV->base_long_d != 0.0) {
     char pilot_msg[MAX_MESH_SIZE];
     int pilot_len = snprintf(pilot_msg, sizeof(pilot_msg),
-                             "Pilot: https://maps.google.com/?q=%.6f,%.6f",
+                             "Pilot: http://maps.apple.com/?ll=%.6f,%.6f&q=Pilot",
                              UAV->base_lat_d, UAV->base_long_d);
     if (Serial1.availableForWrite() >= pilot_len) {
       Serial1.println(pilot_msg);
